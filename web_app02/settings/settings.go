@@ -9,6 +9,7 @@ import (
 )
 
 //全局变量 ,用来保存程序所有的配置信息
+
 var Conf = new(AppConfig)
 
 type AppConfig struct {
