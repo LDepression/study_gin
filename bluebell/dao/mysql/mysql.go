@@ -19,8 +19,9 @@ func Init() error {
 		viper.GetString("mysql.host"),
 		viper.GetInt("mysql.port"),
 		viper.GetString("mysql.dbname"))
-	db, err := sqlx.Connect("mysql", dsn)
 
+	var err error
+	db, err = sqlx.Connect("mysql", dsn)
 	if err != nil {
 		zap.L().Error("connect DB failed", zap.Error(err))
 		//fmt.Printf("connext db failed,err:%v\n", err)

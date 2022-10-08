@@ -1,10 +1,10 @@
 package concrollers
 
 import (
+	"GoAdvance/StudyGinAdvance/bluebell/dao/mysql"
 	"GoAdvance/StudyGinAdvance/bluebell/logic"
 	"GoAdvance/StudyGinAdvance/bluebell/models"
-	"net/http"
-
+	"errors"
 	"github.com/go-playground/validator/v10"
 
 	"go.uber.org/zap"
@@ -21,14 +21,10 @@ func SignUpHandler(c *gin.Context) {
 		//判断err是不是validator.ValidationErrors 类型
 		errs, ok := err.(validator.ValidationErrors)
 		if !ok {
-			c.JSON(http.StatusOK, gin.H{
-				"msg": err.Error(),
-			})
+			ResponseError(c, CodeInvalidParam)
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{
-			"msg": removeTopStruct(errs.Translate(trans)), //翻译错误
-		})
+		ResponseErrorWithMsg(c, CodeInvalidParam, removeTopStruct(errs.Translate(trans)))
 		return
 	}
 	//手动对传入的参数进行校验
@@ -39,9 +35,43 @@ func SignUpHandler(c *gin.Context) {
 	//	})
 	//}
 	//2.业务处理
-	logic.SignUp()
+	if err := logic.SignUp(p); err != nil {
+		zap.L().Error("logic.SignUp failed", zap.Error(err))
+		if errors.Is(err, mysql.ErrorUserExist) {
+			ResponseError(c, CodeUserExist)
+			return
+		}
+		ResponseError(c, CodeServerBusy)
+		return
+	}
 	//3.返回响应
-	c.JSON(http.StatusOK, gin.H{
-		"status": "传入参数正确",
-	})
+	ResponseSuccess(c, nil)
+}
+
+func LoginHandler(c *gin.Context) {
+	//获取参数和参数校验
+	user := new(models.ParamsLogin)
+	if err := c.ShouldBind(user); err != nil {
+		zap.L().Error("binding args failed", zap.Error(err))
+		//判断error是不是validator.ValidationErrors类型
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			ResponseError(c, CodeInvalidParam)
+			return
+		}
+		ResponseErrorWithMsg(c, CodeInvalidParam, removeTopStruct(errs.Translate(trans)))
+		return
+	}
+	//2。进行业务处理
+	if err := logic.Login(user); err != nil {
+		zap.L().Error("logic.Login failed", zap.String("username", user.Username), zap.Error(err))
+		if errors.Is(err, mysql.ErrorUserNotExist) {
+			ResponseError(c, CodeUserNotExist)
+			return
+		}
+		ResponseError(c, CodeInvalidPassword)
+		return
+	}
+	//3返回响应
+	ResponseSuccess(c, nil)
 }

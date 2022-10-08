@@ -1,5 +1,5 @@
 
-create database bluebell
+create database bluebell,
 
 create table `user`(
     `id` bigint(20) not null  auto_increment,
@@ -13,4 +13,4 @@ create table `user`(
     primary key (`id`),
     unique key `idx_username` (`username`) using btree ,
     unique key `idx_user_id`(`user_id`) using btree
-) engine =InnoDB default character set utf8mb4 collate utf8mb4_general_ci
+) engine =InnoDB default charset=utf8mb4 collate utf8mb4_general_ci
