@@ -3,7 +3,7 @@ package routes
 import (
 	concrollers "GoAdvance/StudyGinAdvance/bluebell/controllers"
 	"GoAdvance/StudyGinAdvance/bluebell/logger"
-	"net/http"
+	"GoAdvance/StudyGinAdvance/bluebell/middlewares"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,13 +16,19 @@ func Setup(mode string) *gin.Engine {
 	r := gin.New()
 	//加入之日库的两个中间件
 	r.Use(logger.GinLogger(), logger.GinRecovery(true))
-
+	v1 := r.Group("/api/v1")
 	//注册业务路由
-	r.POST("/signup", concrollers.SignUpHandler)
-	r.POST("/login", concrollers.LoginHandler)
-	r.GET("/", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
-	})
+	v1.POST("/signup", concrollers.SignUpHandler)
+	v1.POST("/login", concrollers.LoginHandler)
+	v1.Use(middlewares.JWTAuthMiddleware()) //应用JWT中间件
+	{
+		v1.GET("/community", concrollers.CommunityHandle)
+		v1.GET("/community/:id", concrollers.CommunityDetailHandle)
+
+		v1.POST("/community/post", concrollers.CreatePostHandle)
+		v1.GET("/community/post/:id", concrollers.GetPostDetailsByID)
+		v1.GET("/posts", concrollers.GetPostListHandle)
+	}
 	r.Run(":9090")
 	return r
 }

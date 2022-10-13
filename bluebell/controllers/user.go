@@ -5,6 +5,7 @@ import (
 	"GoAdvance/StudyGinAdvance/bluebell/logic"
 	"GoAdvance/StudyGinAdvance/bluebell/models"
 	"errors"
+
 	"github.com/go-playground/validator/v10"
 
 	"go.uber.org/zap"
@@ -62,8 +63,9 @@ func LoginHandler(c *gin.Context) {
 		ResponseErrorWithMsg(c, CodeInvalidParam, removeTopStruct(errs.Translate(trans)))
 		return
 	}
-	//2。进行业务处理
-	if err := logic.Login(user); err != nil {
+	//2.进行业务处理
+	token, err := logic.Login(user)
+	if err != nil {
 		zap.L().Error("logic.Login failed", zap.String("username", user.Username), zap.Error(err))
 		if errors.Is(err, mysql.ErrorUserNotExist) {
 			ResponseError(c, CodeUserNotExist)
@@ -73,5 +75,5 @@ func LoginHandler(c *gin.Context) {
 		return
 	}
 	//3返回响应
-	ResponseSuccess(c, nil)
+	ResponseSuccess(c, token)
 }

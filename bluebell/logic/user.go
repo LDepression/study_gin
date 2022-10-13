@@ -3,6 +3,7 @@ package logic
 import (
 	"GoAdvance/StudyGinAdvance/bluebell/dao/mysql"
 	"GoAdvance/StudyGinAdvance/bluebell/models"
+	"GoAdvance/StudyGinAdvance/bluebell/pkg/jwt"
 	"GoAdvance/StudyGinAdvance/bluebell/pkg/snowflake"
 	"fmt"
 )
@@ -38,10 +39,15 @@ func SignUp(p *models.ParamsSignUp) (err error) {
 }
 
 //Login 进行登录业务的处理
-func Login(user *models.ParamsLogin) error {
+func Login(user *models.ParamsLogin) (token string, err error) {
 	u := &models.User{
 		Username: user.Username,
 		Password: user.Password,
 	}
-	return mysql.Login(u)
+	//传递的是指针,就能拿到user.UserID
+	if err := mysql.Login(u); err != nil {
+		return "", err
+	}
+	//生成JWT
+	return jwt.GenToken(u.UserID, u.Username)
 }

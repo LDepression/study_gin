@@ -5,18 +5,11 @@ import (
 	"crypto/md5"
 	"database/sql"
 	"encoding/hex"
-	"errors"
 )
 
 //dao层中的函数,待logic层的函数的调用
 
 const secret = "zxz123456.com"
-
-var (
-	ErrorUserExist       = errors.New("用户已存在")
-	ErrorUserNotExist    = errors.New("用户不存在")
-	ErrorInvalidPassword = errors.New("用户名或密码错误")
-)
 
 func CheckUserExist(username string) (err error) {
 	var id int
@@ -61,4 +54,14 @@ func Login(user *models.User) error {
 		return ErrorInvalidPassword
 	}
 	return nil
+}
+
+func GetUserByID(id int64) (user *models.User, err error) {
+	user = new(models.User)
+	sqlStr := `select
+		user_id,username
+		from user
+		where user_id=?`
+	err = db.Get(user, sqlStr, id)
+	return
 }
