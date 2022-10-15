@@ -2,6 +2,7 @@ package concrollers
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,4 +24,21 @@ func getCurrentUserID(c *gin.Context) (userID int64, err error) {
 		return
 	}
 	return
+}
+
+func getPageInfo(c *gin.Context) (int64, int64) {
+	var (
+		size int64
+		page int64
+		err  error
+	)
+	size, err = strconv.ParseInt(c.Query("size"), 10, 64)
+	if err != nil {
+		size = 10
+	}
+	page, err = strconv.ParseInt(c.Query("page"), 10, 64)
+	if err != nil {
+		page = 1
+	}
+	return page, size
 }

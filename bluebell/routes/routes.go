@@ -28,6 +28,9 @@ func Setup(mode string) *gin.Engine {
 		v1.POST("/community/post", concrollers.CreatePostHandle)
 		v1.GET("/community/post/:id", concrollers.GetPostDetailsByID)
 		v1.GET("/posts", concrollers.GetPostListHandle)
+		//根据时间或分数获取贴子列表
+		v1.GET("/posts2", concrollers.GetPostListHandle2)
+		v1.POST("/vote", concrollers.PostVoteController)
 	}
 	r.Run(":9090")
 	return r

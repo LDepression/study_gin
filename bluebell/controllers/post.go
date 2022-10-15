@@ -33,7 +33,6 @@ func CreatePostHandle(c *gin.Context) {
 		//不要把服务端的错误传给用户端
 		ResponseError(c, CodeServerBusy)
 		return
-
 	}
 	ResponseSuccess(c, nil)
 }
@@ -59,21 +58,64 @@ func GetPostDetailsByID(c *gin.Context) {
 //GetPostListHandle 获取帖子列表参数
 func GetPostListHandle(c *gin.Context) {
 	//先获取分页参数
-	var (
-		size int64
-		page int64
-		err  error
-	)
-	size, err = strconv.ParseInt(c.Query("size"), 10, 64)
+	page, size := getPageInfo(c)
+	data, err := logic.GetPostList(page, size)
 	if err != nil {
-		size = 10
+		ResponseError(c, CodeServerBusy)
+		return
 	}
-	page, err = strconv.ParseInt(c.Query("page"), 10, 64)
-	if err != nil {
-		page = 1
+	ResponseSuccess(c, data)
+}
+
+//按创建的 时间 或者 分数进行排序
+
+//GetPostListHandle2 根据前端传来的参数动态获取帖子列表
+//1.获取参数
+//2.去redis查询id列表
+//3.根据id去数据库查询帖子的详细信息
+func GetPostListHandle2(c *gin.Context) {
+	//get请求参数: /api/v1/posts2?page=1&size=10&order=time  querystring参数
+	//先获取分页参数
+	//初始化结构体时指定参数
+	p := &models.ParamPostList{
+		Page:  1,
+		Size:  10,
+		Order: models.OrderTime, //magic string
+	}
+	if err := c.ShouldBindQuery(p); err != nil {
+		zap.L().Error("GetPostListHandle2 failed with invalid params", zap.Error(err))
+		ResponseError(c, CodeInvalidParam)
+		return
 	}
 
-	data, err := logic.GetPostList(page, size)
+	//c.ShouldBind() 动态地获取参数
+	//c.ShouldBindJSON() 如果请求参数是json的数据,才能用这个方法获取到
+	data, err := logic.GetPostList2(p)
+	if err != nil {
+		ResponseError(c, CodeServerBusy)
+		return
+	}
+	ResponseSuccess(c, data)
+}
+
+//GetCommunityPostListHandler 根据社区去查询帖子列表
+func GetCommunityPostListHandler(c *gin.Context) {
+	//先获取分页参数
+	//初始化结构体时指定参数
+	p := &models.ParamPostList{
+		Page:  1,
+		Size:  10,
+		Order: models.OrderTime, //magic string
+	}
+	if err := c.ShouldBindQuery(p); err != nil {
+		zap.L().Error("GetCommunityPostListHandler failed with invalid params", zap.Error(err))
+		ResponseError(c, CodeInvalidParam)
+		return
+	}
+
+	//c.ShouldBind() 动态地获取参数
+	//c.ShouldBindJSON() 如果请求参数是json的数据,才能用这个方法获取到
+	data, err := logic.GetCommunityPostList(p)
 	if err != nil {
 		ResponseError(c, CodeServerBusy)
 		return

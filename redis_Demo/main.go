@@ -4,14 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/go-redis/redis/v8"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var (
 	rdb *redis.Client
 )
 
+//视频没有
 var ctx = context.Background()
 
 // 初始化连接
@@ -190,6 +192,7 @@ func redisInsertListData() {
 }
 
 // (zset) 操作有序的set
+
 func TestRestZset() {
 	zSetKey := "zSetKey"
 	people := []*redis.Z{
@@ -201,7 +204,6 @@ func TestRestZset() {
 
 	// 想zset中插入数据
 	rdb.ZAdd(ctx, zSetKey, people...)
-
 	// 给指定的元素指定score
 	//让张三的分数加5.0
 	newScore, _ := rdb.ZIncrBy(ctx, zSetKey, 5.0, "张三").Result()
